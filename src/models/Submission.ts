@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import { ISubmission } from "../types/models";
 
 const SubmissionSchema = new Schema({
+  temporaryUsername: { type: "string" },
   sessionId: { type: String, required: true },
   selectedEvents: [
     {

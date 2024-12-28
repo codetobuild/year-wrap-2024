@@ -45,6 +45,7 @@ export const sessionHandler = async (
     }
 
     // Attach session ID to request object
+    res.setHeader("x-session-id", sessionId);
     req.sessionId = sessionId;
     next();
   } catch (error) {

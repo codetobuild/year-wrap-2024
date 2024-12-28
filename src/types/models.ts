@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export interface IUser extends Document {
   sessionId: string;
@@ -12,16 +12,27 @@ export interface IUser extends Document {
   lastActive: Date;
 }
 
+export interface ICategory extends Document {
+  name: string;
+  description?: string;
+  icon?: string;
+  order: number;
+  isAdult: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
 export interface IEvent extends Document {
-  category: string;
+  categoryId: Types.ObjectId;
   title: string;
   description: string;
   points: number;
-  isAdult: boolean;
+  icon?: string;
   order: number;
-  icon: string;
-  createdAt: Date;
   isActive: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface ISubmission extends Document {

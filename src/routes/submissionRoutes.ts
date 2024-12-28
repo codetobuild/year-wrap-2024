@@ -7,15 +7,18 @@ const controller = new SubmissionController();
 
 router
   .route("/")
-  .get(asyncHandler(controller.getSubmissions))
-  .post(asyncHandler(controller.createSubmission));
+  // .get(asyncHandler(controller.getSubmissions.bind(controller)))
+  .post(asyncHandler(controller.createSubmission.bind(controller)));
 
-router.get("/code/:shareCode", asyncHandler(controller.getSubmissionByCode));
+// router
+//   .route("/:id")
+//   .get(asyncHandler(controller.getSubmission.bind(controller)))
+//   .put(asyncHandler(controller.updateSubmission.bind(controller)))
+//   .delete(asyncHandler(controller.deleteSubmission.bind(controller)));
 
-router
-  .route("/:id")
-  .get(asyncHandler(controller.getSubmission))
-  .put(asyncHandler(controller.updateSubmission))
-  .delete(asyncHandler(controller.deleteSubmission));
+router.get(
+  "/share/:shareCode",
+  asyncHandler(controller.getSubmissionByCode.bind(controller))
+);
 
 export default router;
