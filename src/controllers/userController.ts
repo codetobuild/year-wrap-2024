@@ -13,6 +13,7 @@ export class UserController extends BaseController {
 
   async updateUser(req: Request, res: Response, next: NextFunction) {
     await this.handleRequest(req, res, next, async () => {
+      
       const user = await UserModel.findOneAndUpdate(
         { sessionId: req.sessionId },
         req.body,
