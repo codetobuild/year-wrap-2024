@@ -35,15 +35,18 @@ export interface IEvent extends Document {
   updatedAt?: Date;
 }
 
+export interface ICustomEvent {
+  id: string;
+  title: string;
+  points: number;
+}
+
 export interface ISubmission extends Document {
   sessionId: string;
   selectedEvents: Array<{
     eventId: string;
-    timestamp: Date;
-    order: number;
   }>;
   shareCode: string;
-  templateId: string;
   totalPoints: number;
   status: "draft" | "completed";
   createdAt: Date;

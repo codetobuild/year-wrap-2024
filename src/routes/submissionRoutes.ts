@@ -10,9 +10,9 @@ router
   // .get(asyncHandler(controller.getSubmissions.bind(controller)))
   .post(asyncHandler(controller.createSubmission.bind(controller)));
 
-// router
-//   .route("/:id")
-//   .get(asyncHandler(controller.getSubmission.bind(controller)))
+router
+  .route("/:id")  
+  .get(asyncHandler(controller.getSubmission.bind(controller)))
 //   .put(asyncHandler(controller.updateSubmission.bind(controller)))
 //   .delete(asyncHandler(controller.deleteSubmission.bind(controller)));
 

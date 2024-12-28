@@ -12,7 +12,7 @@ export async function generateShareCode(): Promise<string> {
     const uuid = uuidv4();
     code = uuid
       .replace(/-/g, "") // Remove dashes
-      .slice(0, 8) // Take first 8 characters
+      .slice(0, 5) // Take first 8 characters
       .toUpperCase() // Convert to uppercase
       .replace(/[0IO]/g, "") // Remove potentially confusing characters
       .replace(/[^123456789ABCDEFGHJKLMNPQRSTUVWXYZ]/g, "9"); // Replace any remaining invalid chars
