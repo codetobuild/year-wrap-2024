@@ -42,10 +42,12 @@ export interface ICustomEvent {
 }
 
 export interface ISubmission extends Document {
+  temporaryUsername: string;
   sessionId: string;
   selectedEvents: Array<{
     eventId: string;
   }>;
+  customEvents: ICustomEvent[];
   shareCode: string;
   totalPoints: number;
   status: "draft" | "completed";

@@ -3,7 +3,14 @@ import SubmissionModel from "../models/Submission";
 import { AppError } from "../types";
 import { generateShareCode } from "../utils";
 import Event from "../models/Event";
+import ImageGeneratorService from "../service/imageGenerator";
 export class SubmissionController {
+  private imageGenerator: ImageGeneratorService;
+
+  constructor() {
+    this.imageGenerator = new ImageGeneratorService();
+  }
+
   async getSubmissions(req: Request, res: Response) {
     const submissions = await SubmissionModel.find({
       sessionId: req.sessionId,
@@ -126,4 +133,48 @@ export class SubmissionController {
 
     res.json({ success: true, data: submission });
   }
+
+  public generateWrapImage = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const submissionId = req.body.id;
+      console.log({ submissionId });
+      if (!submissionId) {
+        throw new AppError(400, "fail", "Invalid request to generate image");
+      }
+
+      const submission = await SubmissionModel.findById(submissionId).populate(
+        "selectedEvents.eventId"
+      );
+      // .lean();
+
+      console.log({ "submission-data-fetch": submission });
+
+      if (!submission) {
+        res.status(404).json({
+          success: false,
+          message: "Submission not found",
+        });
+        return;
+      }
+
+      const imageUrl = await this.imageGenerator.generateImage(submission);
+
+      res.json({
+        success: true,
+        data: { imageUrl },
+      });
+    } catch (error) {
+      console.error("Image generation error:", error);
+      if (error instanceof AppError) {
+        throw error;
+      }
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate image",
+      });
+    }
+  };
 }

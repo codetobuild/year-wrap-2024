@@ -10,16 +10,16 @@ router
   .get(asyncHandler(controller.getEvents.bind(controller)))
   .post(asyncHandler(controller.createEvent.bind(controller)));
 
+router.get(
+  "/popular",
+  asyncHandler(controller.getPopularEvents.bind(controller))
+);
+
 router
   .route("/:id")
   .get(asyncHandler(controller.getEventById.bind(controller)))
   .put(asyncHandler(controller.updateEvent.bind(controller)))
   .delete(asyncHandler(controller.deleteEvent.bind(controller)));
-
-router.get(
-  "/popular",
-  asyncHandler(controller.getPopularEvents.bind(controller))
-);
 
 router.get(
   "/category/:slug",

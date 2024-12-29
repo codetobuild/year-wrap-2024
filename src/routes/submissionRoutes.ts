@@ -7,14 +7,15 @@ const controller = new SubmissionController();
 
 router
   .route("/")
-  // .get(asyncHandler(controller.getSubmissions.bind(controller)))
   .post(asyncHandler(controller.createSubmission.bind(controller)));
 
 router
-  .route("/:id")  
-  .get(asyncHandler(controller.getSubmission.bind(controller)))
-//   .put(asyncHandler(controller.updateSubmission.bind(controller)))
-//   .delete(asyncHandler(controller.deleteSubmission.bind(controller)));
+  .route("/generate-image")
+  .post(asyncHandler(controller.generateWrapImage.bind(controller)));
+
+router
+  .route("/:id")
+  .get(asyncHandler(controller.getSubmission.bind(controller)));
 
 router.get(
   "/share/:shareCode",

@@ -107,9 +107,9 @@ export class EventController {
     if (categoryId) query.categoryId = categoryId;
 
     const events = await EventModel.find(query)
-      .populate("categoryId")
       .sort({ points: -1 })
-      .limit(10);
+      .select({ title: 1, _id: 1 })
+      .limit(3);
 
     res.json({ success: true, data: events });
   }

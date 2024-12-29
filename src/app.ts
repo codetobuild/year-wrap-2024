@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import routes from "./routes";
+import path from "path";
 import { errorHandler, requestLogger, sessionHandler } from "./middlewares";
 
 export function createApp(): Express {
@@ -11,7 +12,15 @@ export function createApp(): Express {
 
   // Security Middleware
   app.use(helmet());
-  app.use(cors());
+  app.use(
+    cors({
+      origin: process.env.FRONTEND_URL!, // Your Angular app URL
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // explicitly specify methods
+      allowedHeaders: ["Content-Type", "Authorization"],
+      exposedHeaders: ["Content-Range", "X-Content-Range"],
+      credentials: true,
+    })
+  );
 
   // Rate Limiting
   const limiter = rateLimit({
@@ -31,8 +40,19 @@ export function createApp(): Express {
   // Session Handling
   app.use(sessionHandler);
 
+  // Serve static files from 'public' directory
+  app.use(
+    "/images",
+    express.static(path.join(__dirname, "../public/images"), {
+      setHeaders: (res, path) => {
+        res.set("Access-Control-Allow-Origin", process.env.FRONTEND_URL);
+        res.set("Cross-Origin-Resource-Policy", "cross-origin");
+      },
+    })
+  );
+
   // Routes
-  app.use("/api", limiter);
+  // app.use("/api", limiter);
 
   app.use("/api", routes);
 
