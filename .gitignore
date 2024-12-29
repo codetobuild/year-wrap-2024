@@ -12,7 +12,6 @@ package-lock.json
 .idea/
 .vscode/
 *.iml
-
 # OS Specific
 Thumbs.db
 .DS_Store
@@ -26,3 +25,6 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+
+public/
+/public
