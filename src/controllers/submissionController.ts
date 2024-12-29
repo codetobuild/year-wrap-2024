@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import SubmissionModel from "../models/Submission";
-import { AppError } from "../types";
+import { AppError, IEvent } from "../types";
 import { generateShareCode } from "../utils";
 import Event from "../models/Event";
 import ImageGeneratorService from "../service/imageGenerator";
@@ -145,12 +145,10 @@ export class SubmissionController {
         throw new AppError(400, "fail", "Invalid request to generate image");
       }
 
-      const submission = await SubmissionModel.findById(submissionId).populate(
-        "selectedEvents.eventId"
-      );
+      const submission = await SubmissionModel.findById(submissionId).populate<{
+        selectedEvents: { eventId: IEvent }[];
+      }>("selectedEvents.eventId");
       // .lean();
-
-      console.log({ "submission-data-fetch": submission });
 
       if (!submission) {
         res.status(404).json({
@@ -160,7 +158,16 @@ export class SubmissionController {
         return;
       }
 
-      const imageUrl = await this.imageGenerator.generateImage(submission);
+      const eventsList = [
+        ...submission.customEvents.map((e) => e.title),
+        ...submission.selectedEvents.map((e) => e.eventId.title),
+      ];
+
+      const imageUrl = await this.imageGenerator.generateImage(
+        eventsList,
+        submission.shareCode,
+        submission.temporaryUsername
+      );
 
       res.json({
         success: true,

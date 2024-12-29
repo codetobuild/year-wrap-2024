@@ -6,7 +6,6 @@ import {
 } from "canvas";
 import path from "path";
 import fs from "fs/promises";
-import { ISubmission } from "../types";
 
 export default class ImageGeneratorService {
   private readonly CANVAS_WIDTH = 1200;
@@ -57,245 +56,225 @@ export default class ImageGeneratorService {
     }
   }
 
-  private setupCanvas(): { canvas: Canvas; ctx: CanvasRenderingContext2D } {
-    const canvas = createCanvas(this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+  private setupCanvas(eventList: string[]): {
+    canvas: Canvas;
+    ctx: CanvasRenderingContext2D;
+  } {
+    const eventsPerColumn = Math.ceil(Math.min(eventList.length, 30) / 2);
+    const estimatedLinesPerEvent = 2;
+    const lineHeight = this.STYLES.eventTitle.size * 1.2;
+    const headerHeight = 300;
+    // const footerHeight = 100;
+
+    const canvasHeight = Math.max(
+      this.CANVAS_HEIGHT,
+      headerHeight +
+        eventsPerColumn * estimatedLinesPerEvent * lineHeight +
+        eventsPerColumn * 25
+    );
+
+    const canvas = createCanvas(this.CANVAS_WIDTH, canvasHeight);
     const ctx = canvas.getContext("2d");
 
-    // Create main gradient background
+    // Create main gradient background with dynamic height
     const mainGradient = ctx.createLinearGradient(
       0,
       0,
       this.CANVAS_WIDTH,
-      this.CANVAS_HEIGHT
+      canvasHeight
     );
-    mainGradient.addColorStop(0, "#2E1D5B"); // Deep purple
-    mainGradient.addColorStop(0.5, "#1E4D5C"); // Mid teal
-    mainGradient.addColorStop(1, "#135058"); // Deep teal
+    mainGradient.addColorStop(0, "#2E1D5B");
+    mainGradient.addColorStop(0.5, "#1E4D5C");
+    mainGradient.addColorStop(1, "#135058");
 
     ctx.fillStyle = mainGradient;
-    ctx.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+    ctx.fillRect(0, 0, this.CANVAS_WIDTH, canvasHeight);
 
-    // Lighter overlay gradient for better text readability
-    const overlayGradient = ctx.createLinearGradient(
-      0,
-      0,
-      0,
-      this.CANVAS_HEIGHT
-    );
+    // Lighter overlay gradient adjusted for dynamic height
+    const overlayGradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
     overlayGradient.addColorStop(0, "rgba(0,0,0,0.3)");
     overlayGradient.addColorStop(0.5, "rgba(0,0,0,0.1)");
     overlayGradient.addColorStop(1, "rgba(0,0,0,0.4)");
 
     ctx.fillStyle = overlayGradient;
-    ctx.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
-    this.drawDecorations(ctx);
+    ctx.fillRect(0, 0, this.CANVAS_WIDTH, canvasHeight);
+
+    // Pass canvasHeight to drawDecorations
+    this.drawDecorations(ctx, canvasHeight);
 
     return { canvas, ctx };
   }
 
-  private drawDecorations(ctx: CanvasRenderingContext2D): void {
-    // Draw subtle circles with brighter opacity
-    for (let i = 0; i < 10; i++) {
+  private drawDecorations(
+    ctx: CanvasRenderingContext2D,
+    canvasHeight: number
+  ): void {
+    // Calculate number of circles based on canvas height
+    const numberOfCircles = Math.floor(canvasHeight / 160); // Adjust circle density
+
+    // Draw circles
+    for (let i = 0; i < numberOfCircles; i++) {
       const x = Math.random() * this.CANVAS_WIDTH;
-      const y = Math.random() * this.CANVAS_HEIGHT;
+      const y = Math.random() * canvasHeight;
       const radius = Math.random() * 100 + 50;
 
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255,255,255,0.08)"; // Increased opacity
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
       ctx.fill();
     }
 
-    // Add diagonal lines with increased visibility
-    ctx.strokeStyle = "rgba(255,255,255,0.15)"; // Increased opacity
+    // Adjust diagonal lines for dynamic height
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
     ctx.lineWidth = 1;
-    for (let i = 0; i < this.CANVAS_WIDTH; i += 80) {
-      // Decreased spacing
+    const lineSpacing = 80;
+    const numberOfLines = Math.ceil(this.CANVAS_WIDTH / lineSpacing);
+
+    for (let i = 0; i < numberOfLines; i++) {
+      const x = i * lineSpacing;
       ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i + 100, this.CANVAS_HEIGHT);
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 100, canvasHeight);
       ctx.stroke();
     }
 
-    // Lighter vignette effect
+    // Adjust vignette effect for dynamic height
+    const maxDimension = Math.max(this.CANVAS_WIDTH, canvasHeight);
     const vignetteGradient = ctx.createRadialGradient(
       this.CANVAS_WIDTH / 2,
-      this.CANVAS_HEIGHT / 2,
+      canvasHeight / 2,
       0,
       this.CANVAS_WIDTH / 2,
-      this.CANVAS_HEIGHT / 2,
-      this.CANVAS_WIDTH
+      canvasHeight / 2,
+      maxDimension
     );
     vignetteGradient.addColorStop(0, "rgba(0,0,0,0)");
-    vignetteGradient.addColorStop(1, "rgba(0,0,0,0.2)"); // Reduced opacity
+    vignetteGradient.addColorStop(1, "rgba(0,0,0,0.2)");
 
     ctx.fillStyle = vignetteGradient;
-    ctx.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+    ctx.fillRect(0, 0, this.CANVAS_WIDTH, canvasHeight);
   }
-
-  //   private async drawBackground(ctx: CanvasRenderingContext2D): Promise<void> {
-  //     try {
-  //       // Load and draw background pattern
-  //       const bgPattern = await loadImage(
-  //         path.join(__dirname, "../../assets/paw_pattern.png")
-  //       );
-  //       const pattern = ctx.createPattern(bgPattern, "repeat");
-
-  //       if (pattern) {
-  //         ctx.fillStyle = pattern;
-  //         ctx.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
-  //       }
-
-  //       // Add gradient overlay
-  //       const gradient = ctx.createLinearGradient(0, 0, 0, this.CANVAS_HEIGHT);
-  //       gradient.addColorStop(0, "rgba(0,0,0,0.7)");
-  //       gradient.addColorStop(1, "rgba(0,0,0,0.9)");
-  //       ctx.fillStyle = gradient;
-  //       ctx.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
-  //     } catch (error) {
-  //       console.error("Error drawing background:", error);
-  //       throw error;
-  //     }
-  //   }
-
-  //   private drawText(
-  //     ctx: CanvasRenderingContext2D,
-  //     submission: ISubmission
-  //   ): void {
-  //     // Draw title
-  //     ctx.font = "bold 60px Arial";
-  //     ctx.fillStyle = "black";
-  //     ctx.textAlign = "center";
-  //     ctx.fillText("2024 Wrap", this.CANVAS_WIDTH / 2, 100);
-
-  //     // Draw username
-  //     ctx.font = "40px Arial";
-  //     ctx.fillStyle = "black";
-  //     ctx.fillText(
-  //       "Wrapper by " + submission.temporaryUsername,
-  //       this.CANVAS_WIDTH / 2,
-  //       160
-  //     );
-
-  //     // Prepare events list
-  //     const events = [
-  //       //   ...submission.selectedEvents.map((e) => e.eventId.title),
-  //       ...submission.customEvents.map((e) => e.title),
-  //     ];
-
-  //     // Draw events
-  //     ctx.font = "40px Arial";
-  //     ctx.fillStyle = "black";
-  //     ctx.textAlign = "left";
-  //     let yPosition = 250;
-
-  //     events.forEach((event, index) => {
-  //       // Add event number
-  //       const eventText = `${index + 1}. ${event}`;
-
-  //       // Check if text is too long and needs wrapping
-  //       if (ctx.measureText(eventText).width > this.CANVAS_WIDTH - 100) {
-  //         const words = eventText.split(" ");
-  //         let line = "";
-
-  //         words.forEach((word) => {
-  //           const testLine = line + word + " ";
-  //           if (ctx.measureText(testLine).width > this.CANVAS_WIDTH - 100) {
-  //             ctx.fillText(line, this.CANVAS_WIDTH / 2, yPosition);
-  //             line = word + " ";
-  //             yPosition += 40;
-  //           } else {
-  //             line = testLine;
-  //           }
-  //         });
-
-  //         if (line) {
-  //           ctx.fillText(line, this.CANVAS_WIDTH / 2, yPosition);
-  //         }
-  //       } else {
-  //         ctx.fillText(eventText, this.CANVAS_WIDTH / 2, yPosition);
-  //       }
-
-  //       yPosition += 50;
-  //     });
-  //   }
-
   private drawText(
     ctx: CanvasRenderingContext2D,
-    submission: ISubmission
-  ): void {
-    // Draw header section
-    const padding = 60;
+    eventList: string[],
+    temporaryUsername: string
+  ) {
+    // Limit to top 30 events if more
+    const limitedEvents = eventList.slice(0, 30);
+
+    // Calculate columns
+    const midPoint = Math.ceil(limitedEvents.length / 2);
+    const leftColumnEvents = limitedEvents.slice(0, midPoint);
+    const rightColumnEvents = limitedEvents.slice(midPoint);
+
+    // Header section - moved up
     let yPos = 120;
 
-    // Year text with special styling
+    // Year text
     ctx.font = `bold ${this.STYLES.title.size}px ${this.STYLES.title.font}`;
     ctx.fillStyle = this.COLORS.primary;
     ctx.textAlign = "center";
     ctx.fillText("2024", this.CANVAS_WIDTH / 2, yPos);
 
-    // Wrap text with accent color
-    yPos += 80;
+    // Wrap text
+    yPos += 60; // Reduced spacing
     ctx.fillStyle = this.COLORS.accent;
     ctx.font = `bold ${this.STYLES.title.size * 0.8}px ${
       this.STYLES.title.font
     }`;
     ctx.fillText("WRAP", this.CANVAS_WIDTH / 2, yPos);
 
-    // Username with subtle styling
-    yPos += 80;
+    // Username
+    yPos += 60; // Reduced spacing
     ctx.font = `${this.STYLES.username.size}px ${this.STYLES.username.font}`;
     ctx.fillStyle = this.COLORS.secondary;
     ctx.fillText(
-      `Created by ${submission.temporaryUsername}`,
+      `Created by ${temporaryUsername}`,
       this.CANVAS_WIDTH / 2,
       yPos
     );
 
-    // Draw events with enhanced styling
-    const events = [...submission.customEvents.map((e) => e.title)];
-    yPos += 100;
-
-    // Add "Your Top Moments" header
+    // Top Moments header
+    yPos += 80;
     ctx.font = `bold ${this.STYLES.eventTitle.size}px ${this.STYLES.eventTitle.font}`;
     ctx.fillStyle = this.COLORS.primary;
-    ctx.fillText("Your Top Moments", this.CANVAS_WIDTH / 2, yPos);
-    yPos += 80;
+    ctx.fillText("Your Top 2024 Moments", this.CANVAS_WIDTH / 2, yPos);
 
-    // Draw events with numbering and proper spacing
-    events.forEach((event, index) => {
-      const eventNumber = (index + 1).toString().padStart(2, "0");
+    // Start events list
+    yPos += 60;
+    const padding = 40; // Reduced padding
+    const columnWidth = (this.CANVAS_WIDTH - padding * 3) / 2;
 
-      // Draw number with accent color
-      ctx.font = `bold ${this.STYLES.eventTitle.size * 0.8}px ${
+    // Draw left column
+    let leftYPos = yPos;
+    ctx.textAlign = "left";
+    leftColumnEvents.forEach((event, index) => {
+      // Event number
+      ctx.font = `bold ${this.STYLES.eventTitle.size * 0.7}px ${
         this.STYLES.eventTitle.font
       }`;
       ctx.fillStyle = this.COLORS.accent;
-      ctx.textAlign = "left";
-      ctx.fillText(eventNumber, padding, yPos);
+      ctx.fillText((index + 1).toString().padStart(2, "0"), padding, leftYPos);
 
-      // Draw event text
+      // Event text
       ctx.fillStyle = this.COLORS.primary;
-      const maxWidth = this.CANVAS_WIDTH - padding * 3;
+      ctx.font = `regular ${this.STYLES.eventTitle.size * 0.8}px ${
+        this.STYLES.eventTitle.font
+      }`;
       const text = this.wrapText(
         ctx,
         event,
-        padding + 60,
-        yPos,
-        maxWidth,
-        this.STYLES.eventTitle.lineHeight
+        padding + 50,
+        leftYPos,
+        columnWidth - 60,
+        1.2
       );
-
-      // Update yPos based on wrapped text
-      yPos +=
-        text.lines.length *
-          this.STYLES.eventTitle.size *
-          this.STYLES.eventTitle.lineHeight +
-        40;
+      leftYPos += text.lines.length * (this.STYLES.eventTitle.size * 1.2) + 25; // Reduced spacing
     });
 
-    // Add bottom decorative elements
-    this.drawBottomBranding(ctx);
+    // Draw right column
+    let rightYPos = yPos;
+    rightColumnEvents.forEach((event, index) => {
+      // Event number
+      ctx.font = `bold ${this.STYLES.eventTitle.size * 0.7}px ${
+        this.STYLES.eventTitle.font
+      }`;
+      ctx.fillStyle = this.COLORS.accent;
+      ctx.fillText(
+        (index + midPoint + 1).toString().padStart(2, "0"),
+        padding + columnWidth + padding,
+        rightYPos
+      );
+
+      // Event text
+      ctx.fillStyle = this.COLORS.primary;
+      ctx.font = `regular ${this.STYLES.eventTitle.size * 0.8}px ${
+        this.STYLES.eventTitle.font
+      }`;
+      const text = this.wrapText(
+        ctx,
+        event,
+        padding + columnWidth + padding + 50,
+        rightYPos,
+        columnWidth - 60,
+        1.2
+      );
+      rightYPos += text.lines.length * (this.STYLES.eventTitle.size * 1.2) + 25; // Reduced spacing
+    });
+
+    // Bottom branding - use the maximum Y position from either column
+    const finalYPos = Math.max(leftYPos, rightYPos);
+    this.drawBottomBranding(ctx, finalYPos + 40);
+  }
+
+  // Updated bottom branding method
+  private drawBottomBranding(ctx: CanvasRenderingContext2D, yPos: number) {
+    ctx.font = `${this.STYLES.username.size * 0.8}px ${
+      this.STYLES.username.font
+    }`;
+    ctx.fillStyle = this.COLORS.secondary;
+    ctx.textAlign = "center";
+    ctx.fillText(process.env.FRONTEND_URL!, this.CANVAS_WIDTH / 2, yPos);
   }
 
   private wrapText(
@@ -335,27 +314,20 @@ export default class ImageGeneratorService {
     return { lines };
   }
 
-
-  private drawBottomBranding(ctx: CanvasRenderingContext2D) {
-    const bottomY = this.CANVAS_HEIGHT - 80;
-    ctx.font = `${this.STYLES.username.size * 0.8}px ${
-      this.STYLES.username.font
-    }`;
-    ctx.fillStyle = this.COLORS.secondary;
-    ctx.textAlign = "center";
-    ctx.fillText("yearwrap.io", this.CANVAS_WIDTH / 2, bottomY);
-  }
-
-  public async generateImage(submission: ISubmission): Promise<string> {
+  public async generateImage(
+    eventList: string[],
+    shareCode: string,
+    temporaryUsername: string
+  ): Promise<string> {
     try {
-      const { canvas, ctx } = this.setupCanvas();
+      const { canvas, ctx } = this.setupCanvas(eventList);
 
       // Draw background and content
       //   await this.drawBackground(ctx);
-      this.drawText(ctx, submission);
+      this.drawText(ctx, eventList, temporaryUsername);
 
       // Save image
-      const fileName = `wrap-${submission.shareCode}.jpg`;
+      const fileName = `wrap-${shareCode}.jpg`;
       const filePath = path.join(this.UPLOADS_DIR, fileName);
 
       const buffer = canvas.toBuffer("image/jpeg", {

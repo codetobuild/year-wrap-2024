@@ -52,7 +52,7 @@ export function createApp(): Express {
   );
 
   // Routes
-  // app.use("/api", limiter);
+  app.use("/api", limiter);
 
   app.use("/api", routes);
 
