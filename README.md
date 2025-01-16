@@ -14,6 +14,6 @@ A simple web app that helps you reflect on and celebrate your 2024 by capturing 
 
 **Get started:**
 
-1. **[Link to your app]**
+1. **[Link to an app](https://wrap2024.vercel.app)**
 2. Check off your 2024 adventures.
 3. Share your unique year-end recap!
